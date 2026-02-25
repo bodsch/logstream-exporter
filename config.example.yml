@@ -1,0 +1,46 @@
+server:
+  log_listen_address: "127.0.0.1:2212"
+  log_transport: "udp"       # tcp | udp
+  metrics_listen_address: "127.0.0.1:9212"
+  read_timeout: "30s"
+  line_max_bytes: 1048576
+
+parser:
+  format: "auto"            # auto | json | syslog_rfc3164 | syslog_ng_json
+  payload_format: "json"    # json | raw (used for syslog-based payloads)
+
+logging:
+  level: "debug"
+  format: "json"
+
+metrics:
+  const_labels:
+    app: "logstream-exporter"
+
+  event_counter:
+    name: "logstream_events_total"
+    help: "Total processed log events."
+    labels: ["status", "request_method", "request_uri", "remote_addr", "server_name", "syslog_host", "syslog_tag", "geoip_country_code", "geoip_city"]
+
+  definitions:
+    - name: "logstream_request_time_seconds"
+      help: "Observed request_time values."
+      field: "request_time"
+      type: "histogram"
+      labels: ["status", "request_method", "server_name", "syslog_host"]
+      # buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5]
+      buckets: [0.1, 0.25, 0.5, 1, 2, 5]
+
+    - name: "logstream_bytes_sent_total"
+      help: "Accumulated bytes_sent values."
+      field: "bytes_sent"
+      type: "counter_add"
+      labels: ["status", "server_name", "syslog_host"]
+
+    - name: "logstream_upstream_response_time_seconds"
+      help: "Observed upstream response time values."
+      field: "upstream_response_time"
+      type: "histogram"
+      labels: ["status", "server_name", "syslog_host"]
+      # buckets: [0.001, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5]
+      buckets: [0.1, 0.25, 0.5, 1, 2, 5]
